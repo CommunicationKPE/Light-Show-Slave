@@ -8,9 +8,9 @@
       }
     },
     "participants": {
+      ".read": "auth != null && auth.token.admin === true",
       "$participantId": {
-        ".write": "auth != null && auth.uid === $participantId",
-        ".read": "auth != null && auth.token.admin === true"
+        ".write": "auth != null && auth.uid === $participantId"
       }
     }
   }

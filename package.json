@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "start": "npx --yes serve -l 8080 .",
-    "grant-admin": "node tools/grant-admin.cjs"
+    "grant-admin": "node tools/grant-admin.cjs",
+    "deploy-rules": "npx --yes firebase-tools deploy --only database"
   },
   "dependencies": {
     "firebase-admin": "^13.0.1"

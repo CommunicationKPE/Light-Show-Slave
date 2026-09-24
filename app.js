@@ -1,5 +1,5 @@
 import { signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { onValue, ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+import { onDisconnect, onValue, ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 import { auth, database, isConfigured } from "./firebase-client.js";
 
 const joinButton = document.querySelector("#joinButton");
@@ -29,7 +29,9 @@ async function joinShow() {
 
   const credential = auth?.currentUser ? { user: auth.currentUser } : await signInAnonymously(auth);
   const participantId = credential.user.uid;
-  await set(ref(database, `participants/${participantId}`), { joinedAt: Date.now() });
+  const participantRef = ref(database, `participants/${participantId}`);
+  await onDisconnect(participantRef).remove();
+  await set(participantRef, { joinedAt: Date.now() });
   connectionStatus.textContent = "";
   onValue(ref(database, "show/currentCue"), (snapshot) => applyCue(snapshot.val()));
 }

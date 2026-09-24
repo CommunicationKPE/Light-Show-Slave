@@ -1,5 +1,5 @@
 import { onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+import { onValue, ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 import { auth, database, isConfigured } from "./firebase-client.js";
 
 const status = document.querySelector("#adminStatus");
@@ -8,6 +8,17 @@ const durationValue = document.querySelector("#durationValue");
 const loginForm = document.querySelector("#loginForm");
 const cuePanel = document.querySelector(".cue-panel");
 const adminActions = document.querySelector(".admin-actions");
+const deviceCount = document.querySelector("#deviceCount");
+const deviceCountRow = document.querySelector(".device-count");
+
+let stopParticipantsWatch = null;
+
+function watchParticipants() {
+  stopParticipantsWatch?.();
+  stopParticipantsWatch = onValue(ref(database, "participants"), (snapshot) => {
+    deviceCount.textContent = Object.keys(snapshot.val() || {}).length;
+  });
+}
 
 function updateDuration() {
   durationValue.textContent = `${duration.value} ms`;
@@ -54,6 +65,7 @@ if (isConfigured && auth) {
     if (!user) {
       cuePanel.hidden = true;
       adminActions.hidden = true;
+      deviceCountRow.hidden = true;
       status.textContent = "Connectez-vous avec le compte de la regie.";
       return;
     }
@@ -62,10 +74,18 @@ if (isConfigured && auth) {
     loginForm.hidden = isAdmin;
     cuePanel.hidden = !isAdmin;
     adminActions.hidden = !isAdmin;
+    deviceCountRow.hidden = !isAdmin;
     status.textContent = isAdmin ? "Pret a envoyer un signal." : "Connectez-vous avec le compte de la regie.";
+    if (isAdmin) {
+      watchParticipants();
+    } else {
+      stopParticipantsWatch?.();
+      deviceCount.textContent = "0";
+    }
   });
 } else {
   cuePanel.hidden = true;
   adminActions.hidden = true;
+  deviceCountRow.hidden = true;
   status.textContent = "Firebase n'est pas configure.";
 }
