@@ -30,7 +30,7 @@ async function joinShow() {
   const credential = auth?.currentUser ? { user: auth.currentUser } : await signInAnonymously(auth);
   const participantId = credential.user.uid;
   await set(ref(database, `participants/${participantId}`), { joinedAt: Date.now() });
-  connectionStatus.textContent = "Connecte. Ton ecran suivra le show.";
+  connectionStatus.textContent = "";
   onValue(ref(database, "show/currentCue"), (snapshot) => applyCue(snapshot.val()));
 }
 

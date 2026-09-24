@@ -7,13 +7,17 @@
 
 * { box-sizing: border-box; }
 
-body { margin: 0; min-width: 320px; }
+body {
+  background: #071619 url("assets/affiche Bunker-Paillettes.png") center / cover no-repeat fixed;
+  margin: 0;
+  min-width: 320px;
+}
 
 .stage {
-  --cue-color: #071619;
+  --cue-color: transparent;
   --cue-transition: 350ms;
   align-items: center;
-  background: var(--cue-color);
+  background-color: var(--cue-color);
   display: flex;
   justify-content: center;
   min-height: 100dvh;
@@ -28,17 +32,30 @@ body { margin: 0; min-width: 320px; }
 [hidden] { display: none !important; }
 
 .eyebrow { color: #85d9cb; font-size: .75rem; font-weight: 700; letter-spacing: .14em; margin: 0 0 16px; text-transform: uppercase; }
+.eyebrow-logo { max-width: 220px; margin: 0 0 16px; width: 100%; }
 h1 { font-size: clamp(2.4rem, 11vw, 4.5rem); line-height: .94; margin: 0; }
 .intro { color: #c7d7d3; font-size: 1.1rem; line-height: 1.5; margin: 22px 0 32px; }
 .notice { color: #93a9a4; font-size: .85rem; line-height: 1.45; margin: 22px auto 0; max-width: 290px; }
 
 button { border: 0; color: inherit; cursor: pointer; font: inherit; font-weight: 800; }
-.join-button { background: #f7f4e9; border-radius: 5px; color: #071619; font-size: 1rem; min-height: 54px; padding: 0 30px; }
+.join-button { background: #BA1F33; border-radius: 5px; color: #fff; font-size: 1rem; min-height: 54px; padding: 0 30px; }
 .join-button:focus-visible, button:focus-visible { outline: 3px solid #00d9ff; outline-offset: 4px; }
 .pulse { animation: pulse 1.6s ease-in-out infinite; background: #85d9cb; border-radius: 50%; height: 18px; margin: 0 auto 24px; width: 18px; }
 .waiting h1 { font-size: clamp(1.8rem, 8vw, 3rem); }
 .waiting p:last-child { color: #c7d7d3; margin-top: 20px; }
 .show-label { bottom: 24px; font-size: .7rem; font-weight: 800; left: 0; letter-spacing: .12em; position: absolute; right: 0; text-transform: uppercase; }
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .stage { overflow-y: auto; padding: 12px 24px; }
+  .welcome, .waiting { max-width: min(430px, 80vw); }
+  .eyebrow-logo { margin: 0 0 8px; max-width: min(240px, 33vh); }
+  h1 { font-size: clamp(1.5rem, 6vh, 3rem); }
+  .intro { font-size: .9rem; margin: 10px 0 16px; }
+  .notice { font-size: .75rem; margin-top: 10px; }
+  .join-button { min-height: 42px; padding: 0 24px; }
+  .pulse { height: 12px; margin-bottom: 12px; width: 12px; }
+  .waiting h1 { font-size: clamp(1.2rem, 5vh, 2.2rem); }
+}
 
 .admin-body { background: #e8e4d7; color: #142b2d; min-height: 100dvh; padding: clamp(22px, 6vw, 70px); }
 .console { margin: auto; max-width: 760px; }

@@ -2,6 +2,7 @@
   "name": "light-show-slave-tools",
   "private": true,
   "scripts": {
+    "start": "npx --yes serve -l 8080 .",
     "grant-admin": "node tools/grant-admin.cjs"
   },
   "dependencies": {
