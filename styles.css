@@ -57,21 +57,55 @@ button { border: 0; color: inherit; cursor: pointer; font: inherit; font-weight:
   .waiting h1 { font-size: clamp(1.2rem, 5vh, 2.2rem); }
 }
 
-.admin-body { background: #e8e4d7; color: #142b2d; min-height: 100dvh; padding: clamp(22px, 6vw, 70px); }
+.admin-body { background: #071619 url("assets/affiche Bunker-Paillettes.png") center / cover no-repeat fixed; color: #142b2d; min-height: 100dvh; padding: clamp(22px, 6vw, 70px); }
 .console { margin: auto; max-width: 760px; }
-.console h1 { font-size: clamp(3rem, 10vw, 5.5rem); }
+.console-logo { display: block; margin: 0 auto; max-width: 160px; width: 40%; }
 .status { color: #45605e; margin: 18px 0 40px; }
 .login-form { display: grid; gap: 8px; margin: 0 0 32px; max-width: 420px; }
 .login-form input { background: #fffdf5; border: 1px solid #8fa49c; border-radius: 4px; color: #142b2d; font: inherit; min-height: 46px; padding: 8px 10px; }
 .login-form button { background: #142b2d; border-radius: 5px; min-height: 50px; margin-top: 8px; }
 .cue-panel { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .cue { border-radius: 5px; font-size: 1rem; min-height: 100px; padding: 12px; text-align: left; }
-.red { background: #ff2448; }.amber { background: #ffb000; color: #1b1605; }.cyan { background: #00d9ff; color: #06232a; }.lime { background: #c8ff2e; color: #1b2700; }.white { background: #fffdf5; color: #20201c; }.black { background: #050607; }
+.black { background: #000000; color: #fff; }
+.red { background: #FF0000; color: #fff; }
+.green { background: #00FF00; color: #06280a; }
+.blue { background: #0000FF; color: #fff; }
+.yellow { background: #FFFF00; color: #1b1605; }
+.cyan { background: #00FFFF; color: #06232a; }
+.magenta { background: #FF00FF; color: #fff; }
+.white { background: #FFFFFF; color: #20201c; }
+.gray { background: #818181; color: #fff; }
+.orange { background: #FF8100; color: #1b1605; }
+.violet { background: #8100FF; color: #fff; }
+.pink { background: #FF0081; color: #fff; }
 .admin-actions { border-top: 1px solid #aab9af; display: grid; gap: 13px; margin-top: 32px; padding-top: 24px; }
 .admin-actions label { display: flex; justify-content: space-between; font-weight: 800; }
 input[type="range"] { accent-color: #0d7874; width: 100%; }
-.standby { background: #142b2d; border-radius: 5px; min-height: 50px; }
+.standby { background: #142b2d; border-radius: 5px; color: #fff; min-height: 50px; }
 
 @keyframes pulse { 50% { opacity: .3; transform: scale(1.8); } }
 
 @media (min-width: 640px) { .cue-panel { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+@media (max-width: 639px) {
+  .admin-body { overflow-y: auto; padding: 12px; }
+  .console-logo { max-width: 110px; width: 32%; }
+  .status { margin: 8px 0 14px; }
+  .device-count { font-size: .85rem; }
+  .login-form { max-width: 100%; }
+  .cue-panel { gap: 6px; }
+  .cue { font-size: .8rem; min-height: 44px; padding: 6px; }
+  .admin-actions { margin-top: 14px; padding-top: 12px; }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .admin-body { overflow-y: auto; padding: 10px; }
+  .console-logo { max-width: 100px; width: 26%; }
+  .status { margin: 6px 0 10px; }
+  .login-form { gap: 6px; margin-bottom: 12px; }
+  .login-form input { min-height: 34px; }
+  .cue-panel { gap: 5px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .cue { font-size: .7rem; min-height: 42px; padding: 5px; }
+  .admin-actions { gap: 6px; margin-top: 8px; padding-top: 8px; }
+  .standby { min-height: 34px; }
+}
