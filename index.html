@@ -1,0 +1,459 @@
+# Application esclave — page spectateur
+
+Fichier unique `index.html`, sans dépendance, sans build. À déposer tel quel dans `/show/` sur GitHub Pages.
+
+**Ce qu'elle fait**
+
+- écran d'accueil avec un bouton d'entrée (obligatoire pour le Wake Lock, le plein écran et l'anti-veille) ;
+- synchronisation d'horloge avec le serveur (algorithme de Cristian, 7 échantillons, on garde le meilleur RTT) ;
+- exécution des cues **à l'instant prévu**, pas à l'instant de réception ;
+- scènes : couleurs unies, dégradés, images préchargées, pulsation CSS, écran noir ;
+- groupes A / B / C tirés au sort et mémorisés → vagues, damiers, alternances ;
+- reconnexion automatique, resynchronisation au retour d'arrière-plan ;
+- mode dégradé : si le WebSocket tombe, la dernière scène reste affichée ;
+- avertissement photosensibilité + consigne de luminosité.
+
+**Configuration** : tout se règle par l'URL du QR code, aucune modification du fichier nécessaire.
+
+```
+https://toncompte.github.io/lightshow/show/?ws=wss://mon-serveur.example/ws
+```
+
+---
+
+## `index.html`
+
+```html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Light Show</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    color: #fff;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+
+  /* ---------- Couche visuelle plein écran ---------- */
+  #stage {
+    position: fixed;
+    inset: 0;
+    background-color: #000;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: background-color var(--fade, 400ms) ease-in-out;
+    will-change: background-color, opacity, transform;
+  }
+
+  /* Pulsation douce (jamais au-delà de ~2 Hz) */
+  #stage[data-anim="pulse"] { animation: pulse 900ms ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+  #stage[data-anim="breathe"] { animation: breathe 3.2s ease-in-out infinite; }
+  @keyframes breathe { 0%,100% { opacity: .7; } 50% { opacity: 1; } }
+
+  #stage[data-anim="sweep"] { animation: sweep 2.4s linear infinite; }
+  @keyframes sweep { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    #stage[data-anim] { animation: none !important; }
+  }
+
+  /* ---------- Écran d'accueil ---------- */
+  #gate {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    padding: 28px;
+    text-align: center;
+    background: radial-gradient(circle at 50% 30%, #2a0d3d 0%, #07030c 70%);
+    z-index: 10;
+  }
+  #gate.hidden { display: none; }
+
+  #gate h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: .5px; }
+  #gate p  { font-size: .95rem; line-height: 1.5; opacity: .82; max-width: 30ch; }
+
+  #join {
+    margin-top: 6px;
+    padding: 20px 34px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #16021f;
+    background: linear-gradient(135deg, #ffd400, #ff3ea5);
+    border: 0;
+    border-radius: 999px;
+    box-shadow: 0 10px 34px rgba(255, 62, 165, .45);
+    cursor: pointer;
+  }
+  #join:active { transform: scale(.97); }
+  #join[disabled] { opacity: .5; }
+
+  .warn {
+    font-size: .78rem;
+    opacity: .6;
+    max-width: 32ch;
+    line-height: 1.45;
+  }
+
+  /* ---------- Bandeau d'état (discret, masqué pendant le show) ---------- */
+  #hud {
+    position: fixed;
+    left: 50%;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    font-size: .72rem;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+    background: rgba(0, 0, 0, .42);
+    border-radius: 999px;
+    backdrop-filter: blur(6px);
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 350ms;
+    pointer-events: none;
+  }
+  #hud.show { opacity: 1; }
+
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #ff4d4d; }
+  .dot.ok { background: #38e07b; }
+
+  #tapzone { position: fixed; inset: 0; z-index: 4; }
+</style>
+</head>
+<body>
+
+  <div id="stage" aria-hidden="true"></div>
+  <div id="tapzone" title="Toucher pour afficher l'état"></div>
+
+  <div id="hud">
+    <span class="dot" id="dot"></span>
+    <span id="hudtext">connexion…</span>
+  </div>
+
+  <div id="gate">
+    <h1>✨ Le public fait la lumière</h1>
+    <p>
+      Monte la <strong>luminosité au maximum</strong>, garde l'écran allumé
+      et laisse cette page ouverte pendant le spectacle.
+    </p>
+    <button id="join">Je rejoins le show</button>
+    <p class="warn">
+      Ce dispositif comporte des variations lumineuses.
+      Si tu es sensible à la lumière, tourne l'écran vers toi ou quitte la page.
+    </p>
+  </div>
+
+<script>
+"use strict";
+
+/* =======================================================================
+   1. CONFIGURATION — tout est pilotable par l'URL du QR code
+   ======================================================================= */
+
+const params = new URLSearchParams(location.search);
+
+const CONFIG = {
+  // ex. ?ws=wss://mon-serveur.example/ws
+  wsUrl:        params.get("ws") || "wss://REMPLACE-MOI.example/ws",
+  group:        params.get("group") || null,   // force un groupe si besoin
+  groups:       ["A", "B", "C"],
+  syncSamples:  7,
+  resyncEvery:  30000,   // resynchronisation d'horloge (ms)
+  safetyDelay:  300,     // marge appliquée si le cue n'est pas daté (ms)
+  maxBackoff:   8000
+};
+
+// Scènes connues côté client. Le serveur n'envoie qu'un NOM de scène.
+const SCENES = {
+  black:    { color: "#000000" },
+  white:    { color: "#ffffff" },
+  red:      { color: "#ff1024" },
+  yellow:   { color: "#ffd400" },
+  blue:     { color: "#00b4ff" },   // cyan lumineux : bien plus visible qu'un bleu foncé
+  magenta:  { color: "#ff2fa0" },
+  green:    { color: "#27f07a" },
+  orange:   { color: "#ff7a00" },
+
+  // dégradés
+  sunset:   { gradient: "linear-gradient(160deg,#ff2fa0,#ff7a00)" },
+  cosmic:   { gradient: "linear-gradient(200deg,#4b1cff,#00b4ff)" },
+
+  // animations
+  "red-pulse":    { color: "#ff1024", anim: "pulse" },
+  "blue-breathe": { color: "#00b4ff", anim: "breathe" },
+  rainbow:        { gradient: "linear-gradient(120deg,#ff1024,#ffd400,#00b4ff)", anim: "sweep" },
+
+  // images (préchargées au scan)
+  firework: { image: "assets/firework.webp" },
+  star:     { image: "assets/star.webp" },
+  heart:    { image: "assets/heart.webp" },
+
+  // scènes par groupe : chaque groupe reçoit une couleur différente
+  "wave-abc": { byGroup: { A: "#ff1024", B: "#ffd400", C: "#00b4ff" } }
+};
+
+/* =======================================================================
+   2. GROUPE DU SPECTATEUR — tiré au sort, puis mémorisé
+   ======================================================================= */
+
+const myGroup = (() => {
+  if (CONFIG.group) return CONFIG.group.toUpperCase();
+  let g = localStorage.getItem("ls_group");
+  if (!g) {
+    g = CONFIG.groups[Math.floor(Math.random() * CONFIG.groups.length)];
+    localStorage.setItem("ls_group", g);
+  }
+  return g;
+})();
+
+/* =======================================================================
+   3. SYNCHRONISATION D'HORLOGE (Cristian)
+   ======================================================================= */
+
+let clockOffset = 0;         // serverNow ≈ Date.now() + clockOffset
+let clockReady  = false;
+const pending   = new Map(); // t0 -> {sentAt}
+
+function serverNow() { return Date.now() + clockOffset; }
+
+function sendPing() {
+  const t0 = performance.now();
+  const id = Math.random().toString(36).slice(2);
+  pending.set(id, t0);
+  send({ type: "ping", id });
+}
+
+let samples = [];
+function onPong(msg) {
+  const t0 = pending.get(msg.id);
+  if (t0 === undefined) return;
+  pending.delete(msg.id);
+
+  const serverTime = Number(msg.serverTime);
+  if (!Number.isFinite(serverTime)) return;
+  const rtt = performance.now() - t0;
+  // Estimation : l'horloge serveur au moment de la réception
+  const offset = serverTime + rtt / 2 - Date.now();
+  samples.push({ offset, rtt });
+
+  if (samples.length >= CONFIG.syncSamples) {
+    samples.sort((a, b) => a.rtt - b.rtt);
+    const bestRtt = samples[0].rtt;
+    clockOffset = samples[0].offset;      // le ping le plus propre
+    clockReady  = true;
+    samples = [];
+    hud(`sync ±${Math.round(bestRtt / 2)} ms · groupe ${myGroup}`);
+  }
+}
+
+function syncClock() {
+  samples = [];
+  for (let i = 0; i < CONFIG.syncSamples; i++) {
+    sendPing();
+  }
+}
+
+const stage = document.getElementById("stage");
+const gate = document.getElementById("gate");
+const join = document.getElementById("join");
+const dot = document.getElementById("dot");
+const hudText = document.getElementById("hudtext");
+const hudElement = document.getElementById("hud");
+const tapzone = document.getElementById("tapzone");
+
+let socket = null;
+let reconnectTimer = null;
+let syncTimer = null;
+let reconnectDelay = 500;
+let cueTimer = null;
+
+function hud(text, connected = Boolean(socket && socket.readyState === WebSocket.OPEN)) {
+  hudText.textContent = text;
+  dot.classList.toggle("ok", connected);
+}
+
+function send(message) {
+  if (!socket || socket.readyState !== WebSocket.OPEN) return false;
+  socket.send(JSON.stringify(message));
+  return true;
+}
+
+function applyScene(name, fade) {
+  if (typeof name !== "string" || !Object.prototype.hasOwnProperty.call(SCENES, name)) return false;
+  const definition = SCENES[name];
+  const color = definition.byGroup ? definition.byGroup[myGroup] : definition.color;
+  if (definition.byGroup && typeof color !== "string") return false;
+  const fadeDuration = Number.isFinite(Number(fade)) ? Math.max(0, Number(fade)) : 400;
+
+  stage.style.setProperty("--fade", `${fadeDuration}ms`);
+  stage.style.backgroundColor = color || "#000000";
+  stage.style.backgroundImage = definition.gradient || (definition.image ? `url(${definition.image})` : "none");
+  stage.dataset.anim = definition.anim || "";
+  return true;
+}
+
+function cueTargetsThisClient(message) {
+  if (!Array.isArray(message.groups) || message.groups.length === 0) return true;
+  return message.groups.map(String).map(group => group.toUpperCase()).includes(myGroup);
+}
+
+function executeCue(message) {
+  if (cueTargetsThisClient(message)) applyScene(message.scene, message.fade);
+}
+
+function scheduleCue(message) {
+  if (!message || typeof message.scene !== "string") return;
+  if (!Object.prototype.hasOwnProperty.call(SCENES, message.scene)) return;
+  if (!cueTargetsThisClient(message)) return;
+
+  const at = Number(message.at);
+  window.clearTimeout(cueTimer);
+  if (!Number.isFinite(at) || at <= serverNow()) {
+    executeCue(message);
+    return;
+  }
+  cueTimer = window.setTimeout(() => executeCue(message), Math.min(at - serverNow(), 2147483647));
+}
+
+function handleMessage(message) {
+  if (!message || typeof message.type !== "string") return;
+  switch (message.type) {
+    case "pong":
+      if (Number.isFinite(Number(message.serverTime))) onPong(message);
+      break;
+    case "cue":
+      scheduleCue(message);
+      break;
+    case "scene":
+      scheduleCue({ ...message, at: serverNow() });
+      break;
+    case "stop":
+    case "show-stop":
+      window.clearTimeout(cueTimer);
+      applyScene("black", 0);
+      break;
+    default:
+      break;
+  }
+}
+
+function scheduleReconnect() {
+  if (reconnectTimer !== null) return;
+  reconnectTimer = window.setTimeout(() => {
+    reconnectTimer = null;
+    connect();
+  }, reconnectDelay);
+  reconnectDelay = Math.min(CONFIG.maxBackoff, Math.round(reconnectDelay * 1.8));
+}
+
+function connect() {
+  if (!CONFIG.wsUrl || CONFIG.wsUrl.includes("REMPLACE-MOI")) {
+    hud("URL WebSocket manquante", false);
+    return;
+  }
+
+  try {
+    socket = new WebSocket(CONFIG.wsUrl);
+  } catch {
+    hud("connexion impossible", false);
+    scheduleReconnect();
+    return;
+  }
+
+  hud("connexion…", false);
+  socket.addEventListener("open", () => {
+    reconnectDelay = 500;
+    hud(`connecté · groupe ${myGroup}`);
+    send({ type: "hello", group: myGroup });
+    syncClock();
+    window.clearInterval(syncTimer);
+    syncTimer = window.setInterval(syncClock, CONFIG.resyncEvery);
+  });
+
+  socket.addEventListener("message", event => {
+    try {
+      handleMessage(JSON.parse(event.data));
+    } catch {
+      // Un message réseau invalide ne doit pas interrompre le show.
+    }
+  });
+
+  socket.addEventListener("close", () => {
+    window.clearTimeout(syncTimer);
+    syncTimer = null;
+    clockReady = false;
+    hud("hors connexion · dernière scène conservée", false);
+    scheduleReconnect();
+  });
+
+  socket.addEventListener("error", () => hud("erreur de connexion", false));
+}
+
+async function requestWakeLock() {
+  if (!("wakeLock" in navigator)) return;
+  try {
+    const lock = await navigator.wakeLock.request("screen");
+    lock.addEventListener("release", () => {});
+  } catch {
+    // Le Wake Lock peut être indisponible selon le navigateur.
+  }
+}
+
+function showHud() {
+  hudElement.classList.add("show");
+  window.clearTimeout(showHud.timer);
+  showHud.timer = window.setTimeout(() => hudElement.classList.remove("show"), 2500);
+}
+
+async function enterShow() {
+  join.disabled = true;
+  try {
+    if (document.documentElement.requestFullscreen) {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch {
+    // Le plein écran peut être refusé par le navigateur.
+  }
+  await requestWakeLock();
+  gate.classList.add("hidden");
+  connect();
+}
+
+join.addEventListener("click", enterShow);
+tapzone.addEventListener("click", showHud);
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    requestWakeLock();
+    if (socket && socket.readyState === WebSocket.OPEN) syncClock();
+  }
+});
+
+applyScene("black", 0);
+</script>
+</body>
+</html>
