@@ -1,0 +1,17 @@
+{
+  "rules": {
+    ".read": false,
+    "show": {
+      "currentCue": {
+        ".read": true,
+        ".write": "auth != null && auth.token.admin === true"
+      }
+    },
+    "participants": {
+      "$participantId": {
+        ".write": "auth != null && auth.uid === $participantId",
+        ".read": "auth != null && auth.token.admin === true"
+      }
+    }
+  }
+}

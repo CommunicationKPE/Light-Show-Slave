@@ -1,0 +1,10 @@
+{
+  "name": "light-show-slave-tools",
+  "private": true,
+  "scripts": {
+    "grant-admin": "node tools/grant-admin.cjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.1"
+  }
+}
