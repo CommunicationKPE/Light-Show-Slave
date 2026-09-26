@@ -45,7 +45,6 @@ duration.addEventListener("input", updateDuration);
 document.querySelectorAll(".cue").forEach((button) => {
   button.addEventListener("click", () => sendCue(button.dataset.color, button.dataset.label));
 });
-document.querySelector("#standbyButton").addEventListener("click", () => sendCue("#000000"));
 messageForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const message = new FormData(messageForm).get("message").trim();

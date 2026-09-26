@@ -62,27 +62,27 @@ button { border: 0; color: inherit; cursor: pointer; font: inherit; font-weight:
   .waiting h1 { font-size: clamp(1.2rem, 5vh, 2.2rem); }
 }
 
-.admin-body { background: #071619 url("assets/affiche Bunker-Paillettes.png") center / cover no-repeat fixed; color: #142b2d; min-height: 100dvh; padding: clamp(22px, 6vw, 70px); }
+.admin-body { background: #071619 url("assets/affiche Bunker-Paillettes.png") center / cover no-repeat fixed; color: #fff; min-height: 100dvh; padding: clamp(22px, 6vw, 70px); }
 .console { margin: auto; max-width: 760px; }
 .console-logo { display: block; margin: 0 auto; max-width: 160px; width: 40%; }
-.status { color: #45605e; margin: 18px 0 40px; }
+.status { color: #fff; margin: 18px 0 40px; }
 .login-form { display: grid; gap: 8px; margin: 0 0 32px; max-width: 420px; }
 .login-form input { background: #fffdf5; border: 1px solid #8fa49c; border-radius: 4px; color: #142b2d; font: inherit; min-height: 46px; padding: 8px 10px; }
 .login-form button { background: #142b2d; border-radius: 5px; min-height: 50px; margin-top: 8px; }
 .cue-panel { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .cue { border-radius: 5px; font-size: 1rem; min-height: 100px; padding: 12px; text-align: left; }
-.black { background: #000000; color: #fff; }
+.black { background: #000000; color: #FFFFFF; }
 .red { background: #FF0000; color: #fff; }
-.green { background: #00FF00; color: #06280a; }
-.blue { background: #0000FF; color: #fff; }
+.orange { background: #FF7F00; color: #000000; }
 .yellow { background: #FFFF00; color: #1b1605; }
-.cyan { background: #00FFFF; color: #06232a; }
-.magenta { background: #FF00FF; color: #fff; }
-.white { background: #FFFFFF; color: #20201c; }
-.gray { background: #818181; color: #fff; }
-.orange { background: #FF8100; color: #1b1605; }
-.violet { background: #8100FF; color: #fff; }
-.pink { background: #FF0081; color: #fff; }
+.green { background: #00FF00; color: #1b1605; }
+.green-blue { background: #00FF7F; color: #06232a; }
+.aqua { background: #00FFFF; color: #000000; }
+.light-blue { background: #007FFF; color: #20201c; }
+.blue { background: #0000FF; color: #fff; }
+.purple { background: #7F00FF; color: #FFFFFF; }
+.pink { background: #FF00FF; color: #000000; }
+.hot-pink { background: #FF007F; color: #fff; }
 .admin-actions { border-top: 1px solid #aab9af; display: grid; gap: 13px; margin-top: 32px; padding-top: 24px; }
 .admin-actions label { display: flex; justify-content: space-between; font-weight: 800; }
 .message-form { display: grid; gap: 8px; margin-bottom: 12px; }
@@ -90,7 +90,6 @@ button { border: 0; color: inherit; cursor: pointer; font: inherit; font-weight:
 .message-controls input { background: #fffdf5; border: 1px solid #8fa49c; border-radius: 4px; color: #142b2d; font: inherit; min-height: 46px; padding: 8px 10px; }
 .message-controls button { background: #ba1f33; border-radius: 5px; color: #fff; padding: 0 22px; }
 input[type="range"] { accent-color: #0d7874; width: 100%; }
-.standby { background: #142b2d; border-radius: 5px; color: #fff; min-height: 50px; }
 
 @keyframes pulse { 50% { opacity: .3; transform: scale(1.8); } }
 
@@ -116,5 +115,4 @@ input[type="range"] { accent-color: #0d7874; width: 100%; }
   .cue-panel { gap: 5px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .cue { font-size: .7rem; min-height: 42px; padding: 5px; }
   .admin-actions { gap: 6px; margin-top: 8px; padding-top: 8px; }
-  .standby { min-height: 34px; }
 }
