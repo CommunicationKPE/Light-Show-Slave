@@ -12,7 +12,7 @@
         <img class="console-logo" src="assets/Logo.png" alt="Regie" />
         <p id="adminStatus" class="status">Connexion a Firebase...</p>
         <p id="midiStatus" class="midi-status" hidden aria-live="polite"></p>
-        <p class="device-count" hidden>Appareils connectés : <output id="deviceCount">0</output></p>
+        <p class="device-count" hidden>Écrans connectés : <output id="deviceCount">0</output></p>
       </header>
       <form id="loginForm" class="login-form">
         <label for="email">E-mail</label>
@@ -22,22 +22,30 @@
         <button type="submit">Ouvrir la regie</button>
       </form>
       <section class="cue-panel" aria-label="Commandes de couleurs" hidden>
-        <button class="cue black" data-color="#000000" data-label="Black / Mettre en attente" type="button">Black / Mettre en attente</button>
-        <button class="cue red" data-color="#FF0000" data-label="Red" type="button">Red</button>
-        <button class="cue orange" data-color="#FF7F00" data-label="Orange" type="button">Orange</button>
-        <button class="cue yellow" data-color="#FFFF00" data-label="Yellow" type="button">Yellow</button>
-        <button class="cue green" data-color="#00FF00" data-label="Green" type="button">Green</button>
         <button class="cue green-blue" data-color="#00FF7F" data-label="Green/Blue" type="button">Green/Blue</button>
-        <button class="cue aqua" data-color="#00FFFF" data-label="Aqua" type="button">Aqua</button>
-        <button class="cue light-blue" data-color="#007FFF" data-label="Light Blue" type="button">Light Blue</button>
-        <button class="cue blue" data-color="#0000FF" data-label="Blue" type="button">Blue</button>
-        <button class="cue purple" data-color="#7F00FF" data-label="Purple" type="button">Purple</button>
-        <button class="cue pink" data-color="#FF00FF" data-label="Pink" type="button">Pink</button>
         <button class="cue hot-pink" data-color="#FF007F" data-label="Hot Pink" type="button">Hot Pink</button>
+        <button class="cue aqua" data-color="#00FFFF" data-label="Aqua" type="button">Aqua</button>
+        <button class="cue red" data-color="#FF0000" data-label="Red" type="button">Red</button>
+        <button class="cue yellow" data-color="#FFFF00" data-label="Yellow" type="button">Yellow</button>
+        <button class="cue purple" data-color="#7F00FF" data-label="Purple" type="button">Purple</button>
+        <button class="cue green" data-color="#00FF00" data-label="Green" type="button">Green</button>
+        <button class="cue pink" data-color="#FF00FF" data-label="Pink" type="button">Pink</button>
+        <button class="cue black" data-color="#000000" data-label="Black / Mettre en attente" type="button">Black / Mettre en attente</button>
+        <button class="cue light-blue" data-color="#007FFF" data-label="Light Blue" type="button">Light Blue</button>
+        <button class="cue orange" data-color="#FF7F00" data-label="Orange" type="button">Orange</button>
+        
+        
+        
+        
+        
+        <button class="cue blue" data-color="#0000FF" data-label="Blue" type="button">Blue</button>
+        
+        
+        
       </section>
       <div class="admin-actions" hidden>
         <form id="messageForm" class="message-form">
-          <label for="message">Message aux écrans: pour insérer des emojis (WINDOWS + .) </label>
+          <label for="message">Message aux écrans:  NOTA: pour insérer des emojis (WINDOWS + .) </label>
           <div class="message-controls">
             <input id="message" name="message" type="text" maxlength="160" placeholder="Votre message" required />
             <button type="submit">Afficher</button>

@@ -71,8 +71,8 @@ button { border: 0; color: inherit; cursor: pointer; font: inherit; font-weight:
 .login-form { display: grid; gap: 8px; margin: 0 0 32px; max-width: 420px; }
 .login-form input { background: #fffdf5; border: 1px solid #8fa49c; border-radius: 4px; color: #142b2d; font: inherit; min-height: 46px; padding: 8px 10px; }
 .login-form button { background: #142b2d; border-radius: 5px; min-height: 50px; margin-top: 8px; }
-.cue-panel { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.cue { border-radius: 5px; font-size: 1rem; min-height: 100px; padding: 12px; text-align: left; }
+.cue-panel { display: grid; gap: 10px; grid-auto-rows: 72px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.cue { border-radius: 5px; font-size: .9rem; min-height: 72px; overflow-wrap: anywhere; padding: 10px; text-align: center; }
 .black { background: #000000; color: #FFFFFF; }
 .red { background: #FF0000; color: #fff; }
 .orange { background: #FF7F00; color: #000000; }
@@ -95,8 +95,6 @@ input[type="range"] { accent-color: #0d7874; width: 100%; }
 
 @keyframes pulse { 50% { opacity: .3; transform: scale(1.8); } }
 
-@media (min-width: 640px) { .cue-panel { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-
 @media (max-width: 639px) {
   .admin-body { overflow-y: auto; padding: 12px; }
   .console-logo { max-width: 110px; width: 32%; }
@@ -105,7 +103,7 @@ input[type="range"] { accent-color: #0d7874; width: 100%; }
   .midi-status { font-size: .8rem; margin-bottom: 10px; }
   .device-count { font-size: .85rem; }
   .login-form { max-width: 100%; }
-  .cue-panel { gap: 6px; }
+  .cue-panel { gap: 6px; grid-auto-rows: 68px; }
   .cue { font-size: .8rem; min-height: 44px; padding: 6px; }
   .admin-actions { margin-top: 14px; padding-top: 12px; }
 }
@@ -118,7 +116,7 @@ input[type="range"] { accent-color: #0d7874; width: 100%; }
   .midi-status { font-size: .75rem; margin-bottom: 8px; }
   .login-form { gap: 6px; margin-bottom: 12px; }
   .login-form input { min-height: 34px; }
-  .cue-panel { gap: 5px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .cue-panel { gap: 5px; grid-auto-rows: 50px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .cue { font-size: .7rem; min-height: 42px; padding: 5px; }
   .admin-actions { gap: 6px; margin-top: 8px; padding-top: 8px; }
 }

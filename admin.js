@@ -44,11 +44,12 @@ function handleMidiMessage({ data }) {
 
 function updateMidiInputs() {
   const inputs = [...midiAccess.inputs.values()].filter((input) => input.state === "connected");
+  const controllerNames = [...new Set(inputs.map((input) => input.name.match(/\(([^)]+)\)$/)?.[1] || input.name))];
   inputs.forEach((input) => {
     input.onmidimessage = handleMidiMessage;
   });
   midiStatus.textContent = inputs.length
-    ? `MIDI prêt : ${inputs.map((input) => input.name).join(", ")} (36 : noir, 37 : Light Blue, 39 : Blue, 41 : Purple, 43 : Pink, 45 : Hot Pink, 47 : rouge, 38 : orange, 40 : jaune, 42 : vert, 44 : green/blue, 46 : Aqua, 48-51 : message).`
+    ? `Contrôleur MIDI connecté : ${controllerNames.join(", ")}.`
     : "Accès MIDI accordé, mais aucun contrôleur n'est détecté.";
 }
 
@@ -94,7 +95,7 @@ async function sendCue(color, label = "", message = "") {
     transition: Number(duration.value),
     startedAt: Date.now()
   });
-  status.textContent = `Signal envoye : ${label || "attente"}`;
+  status.textContent = `Signal envoyé : ${label || "attente"}`;
 }
 
 duration.addEventListener("input", updateDuration);
@@ -140,7 +141,7 @@ if (isConfigured && auth) {
     cuePanel.hidden = !isAdmin;
     adminActions.hidden = !isAdmin;
     deviceCountRow.hidden = !isAdmin;
-    status.textContent = isAdmin ? "Pret a envoyer un signal." : "Connectez-vous avec le compte de la regie.";
+    status.textContent = isAdmin ? "Prêt à envoyer un signal..." : "Connectez-vous avec le compte de la regie.";
     if (isAdmin) {
       watchParticipants();
       connectMidi();
