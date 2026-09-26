@@ -9,6 +9,7 @@ const stage = document.querySelector("#stage");
 const showMessage = document.querySelector("#showMessage");
 const connectionStatus = document.querySelector("#connectionStatus");
 const connectedLabel = document.querySelector("#connectedLabel");
+const retryButton = document.querySelector("#retryButton");
 
 function applyCue(cue) {
   const color = cue?.color || "#000000";
@@ -22,27 +23,35 @@ function applyCue(cue) {
 async function joinShow() {
   welcome.hidden = true;
   waiting.hidden = false;
+  retryButton.hidden = true;
+  retryButton.disabled = true;
   stage.style.setProperty("--cue-color", "#000000");
   connectedLabel.hidden = true;
   connectionStatus.textContent = "Connexion au show...";
 
   if (!isConfigured || !database) {
     connectionStatus.textContent = "Firebase doit encore etre configure par la regie.";
+    retryButton.disabled = false;
+    retryButton.hidden = false;
     return;
   }
 
-  const credential = auth?.currentUser ? { user: auth.currentUser } : await signInAnonymously(auth);
-  const participantId = credential.user.uid;
-  const participantRef = ref(database, `participants/${participantId}`);
-  await onDisconnect(participantRef).remove();
-  await set(participantRef, { joinedAt: Date.now() });
-  connectionStatus.textContent = "";
-  connectedLabel.hidden = false;
-  onValue(ref(database, "show/currentCue"), (snapshot) => applyCue(snapshot.val()));
+  try {
+    const credential = auth?.currentUser ? { user: auth.currentUser } : await signInAnonymously(auth);
+    const participantId = credential.user.uid;
+    const participantRef = ref(database, `participants/${participantId}`);
+    await onDisconnect(participantRef).remove();
+    await set(participantRef, { joinedAt: Date.now() });
+    connectionStatus.textContent = "";
+    connectedLabel.hidden = false;
+    onValue(ref(database, "show/currentCue"), (snapshot) => applyCue(snapshot.val()));
+  } catch (error) {
+    console.error("Participant connection failed", error);
+    connectionStatus.textContent = "Connexion impossible. Verifie le reseau puis reessaie.";
+    retryButton.disabled = false;
+    retryButton.hidden = false;
+  }
 }
 
-joinButton.addEventListener("click", () => {
-  joinShow().catch(() => {
-    connectionStatus.textContent = "Connexion impossible. Reessaie dans un instant.";
-  });
-});
+joinButton.addEventListener("click", joinShow);
+retryButton.addEventListener("click", joinShow);

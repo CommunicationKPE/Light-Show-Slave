@@ -31,10 +31,11 @@ body {
 
 [hidden] { display: none !important; }
 
-.waiting { align-items: center; bottom: max(16px, env(safe-area-inset-bottom)); display: flex; gap: 8px; left: 50%; max-width: calc(100% - 32px); position: absolute; transform: translateX(-50%); }
+.waiting { align-items: center; bottom: max(16px, env(safe-area-inset-bottom)); display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; left: 50%; max-width: calc(100% - 32px); position: absolute; transform: translateX(-50%); }
 .waiting-label { color: #c7d7d3; font-size: .75rem; margin: 0; }
 .waiting #connectionStatus { color: #c7d7d3; font-size: .75rem; margin: 0; }
 .waiting #connectionStatus:empty { display: none; }
+.retry-button { background: #BA1F33; border-radius: 5px; color: #fff; font-size: .75rem; min-height: 36px; padding: 0 14px; white-space: nowrap; }
 
 .eyebrow { color: #85d9cb; font-size: .75rem; font-weight: 700; letter-spacing: .14em; margin: 0 0 16px; text-transform: uppercase; }
 .eyebrow-logo { max-width: 220px; margin: 0 0 16px; width: 100%; }
@@ -47,7 +48,6 @@ button { border: 0; color: inherit; cursor: pointer; font: inherit; font-weight:
 .join-button:focus-visible, button:focus-visible { outline: 3px solid #00d9ff; outline-offset: 4px; }
 .pulse { animation: pulse 1.6s ease-in-out infinite; background: #85d9cb; border-radius: 50%; flex: 0 0 8px; height: 8px; margin: 0; width: 8px; }
 .waiting h1 { font-size: clamp(1.8rem, 8vw, 3rem); }
-.waiting p:last-child { color: #c7d7d3; margin-top: 20px; }
 .show-message { font-size: clamp(2rem, 10vw, 5rem); font-weight: 800; line-height: 1.05; margin: 0; max-width: 1000px; overflow-wrap: anywhere; white-space: pre-wrap; }
 
 @media (orientation: landscape) and (max-height: 600px) {
@@ -64,16 +64,16 @@ button { border: 0; color: inherit; cursor: pointer; font: inherit; font-weight:
 
 .admin-body { background: #071619 url("assets/affiche Bunker-Paillettes.png") center / cover no-repeat fixed; color: #fff; min-height: 100dvh; padding: clamp(22px, 6vw, 70px); }
 .console { margin: auto; max-width: 760px; }
+.console > header { display: grid; gap: 8px; margin-bottom: 16px; }
 .console-logo { display: block; margin: 0 auto; max-width: 160px; width: 40%; }
-.status { color: #fff; margin: 18px 0 40px; }
-#adminStatus { margin-bottom: 12px; }
-.midi-status { color: #fff; font-size: .9rem; margin: 0 0 14px; }
-.login-form { display: grid; gap: 8px; margin: 0 0 32px; max-width: 420px; }
+.status, .midi-status, .device-count, .admin-actions label { color: #fff; font-family: inherit; font-size: 1rem; font-weight: 800; }
+.status, .midi-status, .device-count { margin: 0; }
+.login-form { display: grid; gap: 8px; margin: 0 0 24px; max-width: 420px; }
 .login-form input { background: #fffdf5; border: 1px solid #8fa49c; border-radius: 4px; color: #142b2d; font: inherit; min-height: 46px; padding: 8px 10px; }
 .login-form button { background: #142b2d; border-radius: 5px; min-height: 50px; margin-top: 8px; }
-.cue-panel { display: grid; gap: 10px; grid-auto-rows: 72px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.cue { border-radius: 5px; font-size: .9rem; min-height: 72px; overflow-wrap: anywhere; padding: 10px; text-align: center; }
-.black { background: #000000; color: #FFFFFF; }
+.cue-panel { display: grid; gap: 8px; grid-auto-rows: 72px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.cue { border-radius: 5px; font-size: .9rem; min-height: 72px; overflow-wrap: anywhere; padding: 8px; text-align: center; }
+.black { background: #000000; border: 1px solid #fff; color: #FFFFFF; }
 .red { background: #FF0000; color: #fff; }
 .orange { background: #FF7F00; color: #000000; }
 .yellow { background: #FFFF00; color: #1b1605; }
@@ -85,9 +85,9 @@ button { border: 0; color: inherit; cursor: pointer; font: inherit; font-weight:
 .purple { background: #7F00FF; color: #FFFFFF; }
 .pink { background: #FF00FF; color: #000000; }
 .hot-pink { background: #FF007F; color: #fff; }
-.admin-actions { border-top: 1px solid #aab9af; display: grid; gap: 13px; margin-top: 32px; padding-top: 24px; }
-.admin-actions label { display: flex; justify-content: space-between; font-weight: 800; }
-.message-form { display: grid; gap: 8px; margin-bottom: 12px; }
+.admin-actions { border-top: 1px solid #aab9af; display: grid; gap: 8px; margin-top: 24px; padding-top: 16px; }
+.admin-actions label { display: flex; justify-content: space-between; }
+.message-form { display: grid; gap: 8px; margin-bottom: 16px; }
 .message-controls { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr) auto; }
 .message-controls input { background: #fffdf5; border: 1px solid #8fa49c; border-radius: 4px; color: #142b2d; font: inherit; min-height: 46px; padding: 8px 10px; }
 .message-controls button { background: #ba1f33; border-radius: 5px; color: #fff; padding: 0 22px; }
@@ -98,25 +98,18 @@ input[type="range"] { accent-color: #0d7874; width: 100%; }
 @media (max-width: 639px) {
   .admin-body { overflow-y: auto; padding: 12px; }
   .console-logo { max-width: 110px; width: 32%; }
-  .status { margin: 8px 0 14px; }
-  #adminStatus { margin: 8px 0 10px; }
-  .midi-status { font-size: .8rem; margin-bottom: 10px; }
-  .device-count { font-size: .85rem; }
   .login-form { max-width: 100%; }
-  .cue-panel { gap: 6px; grid-auto-rows: 68px; }
-  .cue { font-size: .8rem; min-height: 44px; padding: 6px; }
-  .admin-actions { margin-top: 14px; padding-top: 12px; }
+  .cue-panel { grid-auto-rows: 68px; }
+  .cue { font-size: .8rem; min-height: 44px; }
+  .admin-actions { margin-top: 16px; padding-top: 16px; }
 }
 
 @media (orientation: landscape) and (max-height: 600px) {
   .admin-body { overflow-y: auto; padding: 10px; }
   .console-logo { max-width: 100px; width: 26%; }
-  .status { margin: 6px 0 10px; }
-  #adminStatus { margin: 6px 0 8px; }
-  .midi-status { font-size: .75rem; margin-bottom: 8px; }
-  .login-form { gap: 6px; margin-bottom: 12px; }
+  .login-form { margin-bottom: 16px; }
   .login-form input { min-height: 34px; }
-  .cue-panel { gap: 5px; grid-auto-rows: 50px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .cue { font-size: .7rem; min-height: 42px; padding: 5px; }
-  .admin-actions { gap: 6px; margin-top: 8px; padding-top: 8px; }
+  .cue-panel { grid-auto-rows: 50px; }
+  .cue { font-size: .7rem; min-height: 42px; }
+  .admin-actions { margin-top: 8px; padding-top: 8px; }
 }
