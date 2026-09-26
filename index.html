@@ -18,9 +18,10 @@
       </section>
       <section class="waiting" id="waiting" hidden aria-live="polite">
         <div class="pulse" aria-hidden="true"></div>
-        <p class="eyebrow">Connecté au show</p>
-        <p id="connectionStatus">Preparation de ton ecran...</p>
+        <p class="waiting-label" id="connectedLabel" hidden>CONNECTÉ AU SHOW</p>
+        <p id="connectionStatus">Connexion au show...</p>
       </section>
+      <p class="show-message" id="showMessage" hidden aria-live="assertive"></p>
     </main>
     <script type="module" src="app.js"></script>
   </body>

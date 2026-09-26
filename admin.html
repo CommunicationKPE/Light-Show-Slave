@@ -35,6 +35,13 @@
         <button class="cue pink" data-color="#FF0081" data-label="Rose" type="button">Rose</button>
       </section>
       <div class="admin-actions" hidden>
+        <form id="messageForm" class="message-form">
+          <label for="message">Message aux écrans</label>
+          <div class="message-controls">
+            <input id="message" name="message" type="text" maxlength="160" placeholder="Votre message" required />
+            <button type="submit">Afficher</button>
+          </div>
+        </form>
         <label for="duration">Transition <output id="durationValue">350 ms</output></label>
         <input id="duration" type="range" min="0" max="2000" step="50" value="350" />
         <button class="standby" id="standbyButton" type="button">Mettre en attente</button>

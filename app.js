@@ -6,21 +6,25 @@ const joinButton = document.querySelector("#joinButton");
 const welcome = document.querySelector("#welcome");
 const waiting = document.querySelector("#waiting");
 const stage = document.querySelector("#stage");
-const showLabel = document.querySelector("#showLabel");
+const showMessage = document.querySelector("#showMessage");
 const connectionStatus = document.querySelector("#connectionStatus");
+const connectedLabel = document.querySelector("#connectedLabel");
 
 function applyCue(cue) {
-  const color = cue?.color || "#071619";
+  const color = cue?.color || "#000000";
   const transition = Number(cue?.transition ?? 350);
   stage.style.setProperty("--cue-color", color);
   stage.style.setProperty("--cue-transition", `${transition}ms`);
-  showLabel.textContent = cue?.label || "";
-  showLabel.hidden = !cue?.label;
+  showMessage.textContent = cue?.message || "";
+  showMessage.hidden = !cue?.message;
 }
 
 async function joinShow() {
   welcome.hidden = true;
   waiting.hidden = false;
+  stage.style.setProperty("--cue-color", "#000000");
+  connectedLabel.hidden = true;
+  connectionStatus.textContent = "Connexion au show...";
 
   if (!isConfigured || !database) {
     connectionStatus.textContent = "Firebase doit encore etre configure par la regie.";
@@ -33,6 +37,7 @@ async function joinShow() {
   await onDisconnect(participantRef).remove();
   await set(participantRef, { joinedAt: Date.now() });
   connectionStatus.textContent = "";
+  connectedLabel.hidden = false;
   onValue(ref(database, "show/currentCue"), (snapshot) => applyCue(snapshot.val()));
 }
 

@@ -20,7 +20,7 @@ Application statique pour des ecrans de spectateurs synchronises avec Firebase R
 
 ## Contrat de donnees
 
-La regie ecrit le signal courant sous `show/currentCue` : couleur, nom, transition et instant d'emission. Les spectateurs ecoutent cette valeur en temps reel.
+La regie ecrit le signal courant sous `show/currentCue` : couleur, nom, message optionnel, transition et instant d'emission. Les spectateurs ecoutent cette valeur en temps reel.
 
 ## Avant le spectacle
 
