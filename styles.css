@@ -66,6 +66,8 @@ button { border: 0; color: inherit; cursor: pointer; font: inherit; font-weight:
 .console { margin: auto; max-width: 760px; }
 .console-logo { display: block; margin: 0 auto; max-width: 160px; width: 40%; }
 .status { color: #fff; margin: 18px 0 40px; }
+#adminStatus { margin-bottom: 12px; }
+.midi-status { color: #fff; font-size: .9rem; margin: 0 0 14px; }
 .login-form { display: grid; gap: 8px; margin: 0 0 32px; max-width: 420px; }
 .login-form input { background: #fffdf5; border: 1px solid #8fa49c; border-radius: 4px; color: #142b2d; font: inherit; min-height: 46px; padding: 8px 10px; }
 .login-form button { background: #142b2d; border-radius: 5px; min-height: 50px; margin-top: 8px; }
@@ -99,6 +101,8 @@ input[type="range"] { accent-color: #0d7874; width: 100%; }
   .admin-body { overflow-y: auto; padding: 12px; }
   .console-logo { max-width: 110px; width: 32%; }
   .status { margin: 8px 0 14px; }
+  #adminStatus { margin: 8px 0 10px; }
+  .midi-status { font-size: .8rem; margin-bottom: 10px; }
   .device-count { font-size: .85rem; }
   .login-form { max-width: 100%; }
   .cue-panel { gap: 6px; }
@@ -110,6 +114,8 @@ input[type="range"] { accent-color: #0d7874; width: 100%; }
   .admin-body { overflow-y: auto; padding: 10px; }
   .console-logo { max-width: 100px; width: 26%; }
   .status { margin: 6px 0 10px; }
+  #adminStatus { margin: 6px 0 8px; }
+  .midi-status { font-size: .75rem; margin-bottom: 8px; }
   .login-form { gap: 6px; margin-bottom: 12px; }
   .login-form input { min-height: 34px; }
   .cue-panel { gap: 5px; grid-template-columns: repeat(4, minmax(0, 1fr)); }

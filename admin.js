@@ -11,8 +11,64 @@ const cuePanel = document.querySelector(".cue-panel");
 const adminActions = document.querySelector(".admin-actions");
 const deviceCount = document.querySelector("#deviceCount");
 const deviceCountRow = document.querySelector(".device-count");
+const midiStatus = document.querySelector("#midiStatus");
+const midiCueButtons = new Map([
+  [36, document.querySelector(".cue.black")],
+  [37, document.querySelector(".cue.light-blue")],
+  [39, document.querySelector(".cue.blue")],
+  [41, document.querySelector(".cue.purple")],
+  [43, document.querySelector(".cue.pink")],
+  [45, document.querySelector(".cue.hot-pink")],
+  [47, document.querySelector(".cue.red")],
+  [38, document.querySelector(".cue.orange")],
+  [40, document.querySelector(".cue.yellow")],
+  [42, document.querySelector(".cue.green")],
+  [44, document.querySelector(".cue.green-blue")],
+  [46, document.querySelector(".cue.aqua")],
+  [48, messageForm.querySelector('button[type="submit"]')],
+  [49, messageForm.querySelector('button[type="submit"]')],
+  [50, messageForm.querySelector('button[type="submit"]')],
+  [51, messageForm.querySelector('button[type="submit"]')]
+]);
 
 let stopParticipantsWatch = null;
+let midiAccess = null;
+
+function handleMidiMessage({ data }) {
+  const [statusByte, note, velocity] = data;
+  const button = midiCueButtons.get(note);
+  if ((statusByte & 0xf0) === 0x90 && velocity > 0 && button) {
+    button.click();
+  }
+}
+
+function updateMidiInputs() {
+  const inputs = [...midiAccess.inputs.values()].filter((input) => input.state === "connected");
+  inputs.forEach((input) => {
+    input.onmidimessage = handleMidiMessage;
+  });
+  midiStatus.textContent = inputs.length
+    ? `MIDI prêt : ${inputs.map((input) => input.name).join(", ")} (36 : noir, 37 : Light Blue, 39 : Blue, 41 : Purple, 43 : Pink, 45 : Hot Pink, 47 : rouge, 38 : orange, 40 : jaune, 42 : vert, 44 : green/blue, 46 : Aqua, 48-51 : message).`
+    : "Accès MIDI accordé, mais aucun contrôleur n'est détecté.";
+}
+
+async function connectMidi() {
+  midiStatus.hidden = false;
+  if (!navigator.requestMIDIAccess) {
+    midiStatus.textContent = "Web MIDI indisponible dans ce navigateur. Essaie Chrome ou Edge sur localhost ou HTTPS.";
+    return;
+  }
+
+  midiStatus.textContent = "Connexion au contrôleur MIDI...";
+  try {
+    midiAccess = await navigator.requestMIDIAccess();
+    midiAccess.onstatechange = updateMidiInputs;
+    updateMidiInputs();
+  } catch (error) {
+    console.error("MIDI access failed", error);
+    midiStatus.textContent = "Accès MIDI refusé. Autorise le MIDI dans les permissions du navigateur.";
+  }
+}
 
 function watchParticipants() {
   stopParticipantsWatch?.();
@@ -74,6 +130,7 @@ if (isConfigured && auth) {
       cuePanel.hidden = true;
       adminActions.hidden = true;
       deviceCountRow.hidden = true;
+      midiStatus.hidden = true;
       status.textContent = "Connectez-vous avec le compte de la regie.";
       return;
     }
@@ -86,14 +143,17 @@ if (isConfigured && auth) {
     status.textContent = isAdmin ? "Pret a envoyer un signal." : "Connectez-vous avec le compte de la regie.";
     if (isAdmin) {
       watchParticipants();
+      connectMidi();
     } else {
       stopParticipantsWatch?.();
       deviceCount.textContent = "0";
+      midiStatus.hidden = true;
     }
   });
 } else {
   cuePanel.hidden = true;
   adminActions.hidden = true;
   deviceCountRow.hidden = true;
+  midiStatus.hidden = true;
   status.textContent = "Firebase n'est pas configure.";
 }
