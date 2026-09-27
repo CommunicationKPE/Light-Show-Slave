@@ -1,8 +1,9 @@
-import { onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { onValue, ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 import { auth, database, isConfigured } from "./firebase-client.js";
 
 const status = document.querySelector("#adminStatus");
+const logoutButton = document.querySelector("#logoutButton");
 const duration = document.querySelector("#duration");
 const durationValue = document.querySelector("#durationValue");
 const loginForm = document.querySelector("#loginForm");
@@ -125,23 +126,39 @@ loginForm.addEventListener("submit", async (event) => {
   }
 });
 
+logoutButton.addEventListener("click", async () => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error("Firebase sign-out failed", error);
+    status.textContent = `Déconnexion impossible (${error.code || "erreur inconnue"}).`;
+  }
+});
+
 if (isConfigured && auth) {
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
+      loginForm.hidden = false;
+      loginForm.reset();
+      logoutButton.hidden = true;
       cuePanel.hidden = true;
       adminActions.hidden = true;
       deviceCountRow.hidden = true;
+      stopParticipantsWatch?.();
+      stopParticipantsWatch = null;
+      deviceCount.textContent = "0";
       midiStatus.hidden = true;
       status.textContent = "Connectez-vous avec le compte de la regie.";
       return;
     }
     const token = await user.getIdTokenResult();
     const isAdmin = token.claims.admin === true;
+    logoutButton.hidden = false;
     loginForm.hidden = isAdmin;
     cuePanel.hidden = !isAdmin;
     adminActions.hidden = !isAdmin;
     deviceCountRow.hidden = !isAdmin;
-    status.textContent = isAdmin ? "Prêt à envoyer un signal..." : "Connectez-vous avec le compte de la regie.";
+    status.textContent = isAdmin ? "Prêt à envoyer un signal..." : "Ce compte n'a pas accès à la régie.";
     if (isAdmin) {
       watchParticipants();
       connectMidi();

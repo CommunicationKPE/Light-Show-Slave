@@ -10,6 +10,7 @@
     <main class="console">
       <header>
         <img class="console-logo" src="assets/Logo.png" alt="Regie" />
+        <button id="logoutButton" class="logout-button" type="button" hidden>Se déconnecter</button>
         <p id="adminStatus" class="status">Connexion a Firebase...</p>
         <p id="midiStatus" class="midi-status" hidden aria-live="polite"></p>
         <p class="device-count" hidden>Écrans connectés : <output id="deviceCount">0</output></p>
@@ -19,7 +20,7 @@
         <input id="email" name="email" type="email" autocomplete="username" required />
         <label for="password">Mot de passe</label>
         <input id="password" name="password" type="password" autocomplete="current-password" required />
-        <button type="submit">Ouvrir la regie</button>
+        <button type="submit">Accéder à la régie</button>
       </form>
       <section class="cue-panel" aria-label="Commandes de couleurs" hidden>
         <button class="cue green-blue" data-color="#00FF7F" data-label="Green/Blue" type="button">Green/Blue</button>
