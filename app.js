@@ -4,6 +4,15 @@ import { auth, database, isConfigured } from "./firebase-client.js";
 import { firebaseConfig } from "./firebase-config.js";
 
 const SHOW_STATUS_POLL_MS = 5000;
+const DARK_TEXT_CUE_COLORS = new Set([
+  "#00FF7F",
+  "#00FFFF",
+  "#FFFF00",
+  "#00FF00",
+  "#FF00FF",
+  "#007FFF",
+  "#FF7F00"
+]);
 
 const joinButton = document.querySelector("#joinButton");
 const welcome = document.querySelector("#welcome");
@@ -67,6 +76,7 @@ async function leaveShow() {
   goOffline(database);
   // Back to the CSS default (transparent) so the page background shows again.
   stage.style.removeProperty("--cue-color");
+  stage.style.removeProperty("--status-color");
   showMessage.textContent = "";
   showMessage.hidden = true;
   waiting.hidden = true;
@@ -78,6 +88,7 @@ function applyCue(cue) {
   const color = cue?.color || "#000000";
   const transition = Number(cue?.transition ?? 350);
   stage.style.setProperty("--cue-color", color);
+  stage.style.setProperty("--status-color", DARK_TEXT_CUE_COLORS.has(color.toUpperCase()) ? "#000000" : "#c7d7d3");
   stage.style.setProperty("--cue-transition", `${transition}ms`);
   showMessage.textContent = cue?.message || "";
   showMessage.hidden = !cue?.message;
