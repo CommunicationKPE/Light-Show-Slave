@@ -177,7 +177,7 @@ showToggleButton.addEventListener("click", async () => {
       status.textContent = "Show fermé : les écrans ont été déconnectés.";
     } else {
       // Sent before opening so the first screens to join start on black.
-      await sendCue("#000000", "Black / Mettre en attente");
+      await sendCue("#000000", "Black");
       startShowPresence();
       status.textContent = "Show ouvert : les écrans peuvent se connecter.";
     }

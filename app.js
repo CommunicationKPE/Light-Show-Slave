@@ -12,10 +12,13 @@ const connectedLabel = document.querySelector("#connectedLabel");
 const retryButton = document.querySelector("#retryButton");
 const showClosed = document.querySelector("#showClosed");
 const kickedNotice = document.querySelector("#kickedNotice");
+const welcomeTitle = document.querySelector("#welcomeTitle");
+const welcomeIntro = document.querySelector("#welcomeIntro");
+const welcomeNotice = document.querySelector("#welcomeNotice");
 
 let session = null;
 
-async function leaveShow(reason) {
+async function leaveShow(reason, hideTitle = false) {
   if (!session) return;
   const { participantRef, stopCue, stopSelf } = session;
   session = null;
@@ -27,11 +30,18 @@ async function leaveShow(reason) {
   } catch (error) {
     console.error("Participant cleanup failed", error);
   }
-  applyCue(null);
+  // Back to the CSS default (transparent) so the page background shows again.
+  stage.style.removeProperty("--cue-color");
+  showMessage.textContent = "";
+  showMessage.hidden = true;
   waiting.hidden = true;
   welcome.hidden = false;
   kickedNotice.textContent = reason;
   kickedNotice.hidden = !reason;
+  welcomeTitle.hidden = hideTitle;
+  welcomeIntro.hidden = hideTitle;
+  welcomeNotice.hidden = hideTitle;
+  if (hideTitle) showClosed.hidden = true;
 }
 
 function applyCue(cue) {
@@ -91,7 +101,13 @@ if (isConfigured && database) {
     const isActive = snapshot.val() === true;
     joinButton.hidden = !isActive;
     showClosed.hidden = isActive;
-    if (!isActive) leaveShow("Le show est terminé. Merci ! Vous pouvez quitter cette page et refermer votre navigateur.");
+    if (isActive && welcomeTitle.hidden) {
+      kickedNotice.hidden = true;
+      welcomeTitle.hidden = false;
+      welcomeIntro.hidden = false;
+      welcomeNotice.hidden = false;
+    }
+    if (!isActive) leaveShow("Le show est terminé. Merci ! Vous pouvez quitter cette page et refermer votre navigateur.", true);
   });
 } else {
   joinButton.hidden = false;
