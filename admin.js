@@ -1,5 +1,5 @@
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { onValue, ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+import { onDisconnect, onValue, ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 import { auth, database, isConfigured } from "./firebase-client.js";
 
 const status = document.querySelector("#adminStatus");
@@ -33,7 +33,27 @@ const midiCueButtons = new Map([
 ]);
 
 let stopParticipantsWatch = null;
+let stopShowPresence = null;
 let midiAccess = null;
+
+function startShowPresence() {
+  stopShowPresence?.();
+  const activeRef = ref(database, "show/active");
+  // Re-arm on every (re)connection so the show closes if the régie drops.
+  stopShowPresence = onValue(ref(database, ".info/connected"), async (snapshot) => {
+    if (snapshot.val() !== true) return;
+    await onDisconnect(activeRef).set(false);
+    await set(activeRef, true);
+  });
+}
+
+async function stopShow() {
+  stopShowPresence?.();
+  stopShowPresence = null;
+  const activeRef = ref(database, "show/active");
+  await onDisconnect(activeRef).cancel();
+  await set(activeRef, false);
+}
 
 function handleMidiMessage({ data }) {
   const [statusByte, note, velocity] = data;
@@ -127,6 +147,14 @@ loginForm.addEventListener("submit", async (event) => {
 });
 
 logoutButton.addEventListener("click", async () => {
+  // Must run before signOut, while the admin can still write.
+  if (stopShowPresence) {
+    try {
+      await stopShow();
+    } catch (error) {
+      console.error("Failed to close the show", error);
+    }
+  }
   try {
     await signOut(auth);
   } catch (error) {
@@ -146,6 +174,8 @@ if (isConfigured && auth) {
       deviceCountRow.hidden = true;
       stopParticipantsWatch?.();
       stopParticipantsWatch = null;
+      stopShowPresence?.();
+      stopShowPresence = null;
       deviceCount.textContent = "0";
       midiStatus.hidden = true;
       status.textContent = "Connectez-vous avec le compte de la regie.";
@@ -161,6 +191,7 @@ if (isConfigured && auth) {
     status.textContent = isAdmin ? "Prêt à envoyer un signal..." : "Ce compte n'a pas accès à la régie.";
     if (isAdmin) {
       watchParticipants();
+      startShowPresence();
       connectMidi();
     } else {
       stopParticipantsWatch?.();

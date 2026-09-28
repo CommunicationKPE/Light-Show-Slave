@@ -10,6 +10,7 @@ const showMessage = document.querySelector("#showMessage");
 const connectionStatus = document.querySelector("#connectionStatus");
 const connectedLabel = document.querySelector("#connectedLabel");
 const retryButton = document.querySelector("#retryButton");
+const showClosed = document.querySelector("#showClosed");
 
 function applyCue(cue) {
   const color = cue?.color || "#000000";
@@ -55,3 +56,13 @@ async function joinShow() {
 
 joinButton.addEventListener("click", joinShow);
 retryButton.addEventListener("click", joinShow);
+
+if (isConfigured && database) {
+  onValue(ref(database, "show/active"), (snapshot) => {
+    const isActive = snapshot.val() === true;
+    joinButton.hidden = !isActive;
+    showClosed.hidden = isActive;
+  });
+} else {
+  joinButton.hidden = false;
+}
