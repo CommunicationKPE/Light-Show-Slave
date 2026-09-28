@@ -1,5 +1,5 @@
 import { signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { onDisconnect, onValue, ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+import { onDisconnect, onValue, ref, remove, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 import { auth, database, isConfigured } from "./firebase-client.js";
 
 const joinButton = document.querySelector("#joinButton");
@@ -11,6 +11,28 @@ const connectionStatus = document.querySelector("#connectionStatus");
 const connectedLabel = document.querySelector("#connectedLabel");
 const retryButton = document.querySelector("#retryButton");
 const showClosed = document.querySelector("#showClosed");
+const kickedNotice = document.querySelector("#kickedNotice");
+
+let session = null;
+
+async function leaveShow(reason) {
+  if (!session) return;
+  const { participantRef, stopCue, stopSelf } = session;
+  session = null;
+  stopCue();
+  stopSelf();
+  try {
+    await onDisconnect(participantRef).cancel();
+    await remove(participantRef);
+  } catch (error) {
+    console.error("Participant cleanup failed", error);
+  }
+  applyCue(null);
+  waiting.hidden = true;
+  welcome.hidden = false;
+  kickedNotice.textContent = reason;
+  kickedNotice.hidden = !reason;
+}
 
 function applyCue(cue) {
   const color = cue?.color || "#000000";
@@ -22,6 +44,8 @@ function applyCue(cue) {
 }
 
 async function joinShow() {
+  if (session) return;
+  kickedNotice.hidden = true;
   welcome.hidden = true;
   waiting.hidden = false;
   retryButton.hidden = true;
@@ -45,7 +69,12 @@ async function joinShow() {
     await set(participantRef, { joinedAt: Date.now() });
     connectionStatus.textContent = "";
     connectedLabel.hidden = false;
-    onValue(ref(database, "show/currentCue"), (snapshot) => applyCue(snapshot.val()));
+    const stopCue = onValue(ref(database, "show/currentCue"), (snapshot) => applyCue(snapshot.val()));
+    // The régie kicks a screen by deleting its participant node.
+    const stopSelf = onValue(participantRef, (snapshot) => {
+      if (!snapshot.exists()) leaveShow("Tu as été déconnecté par la régie.");
+    });
+    session = { participantRef, stopCue, stopSelf };
   } catch (error) {
     console.error("Participant connection failed", error);
     connectionStatus.textContent = "Connexion impossible. Verifie le reseau puis reessaie.";
@@ -62,6 +91,7 @@ if (isConfigured && database) {
     const isActive = snapshot.val() === true;
     joinButton.hidden = !isActive;
     showClosed.hidden = isActive;
+    if (!isActive) leaveShow("Le show est terminé. Merci ! Vous pouvez quitter cette page et refermer votre navigateur.");
   });
 } else {
   joinButton.hidden = false;

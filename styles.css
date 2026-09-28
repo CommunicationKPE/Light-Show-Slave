@@ -64,11 +64,13 @@ button { border: 0; color: inherit; cursor: pointer; font: inherit; font-weight:
 
 .admin-body { background: #071619 url("assets/affiche Bunker-Paillettes.png") center / cover no-repeat fixed; color: #fff; min-height: 100dvh; padding: clamp(22px, 6vw, 70px); }
 .console { margin: auto; max-width: 760px; }
-.console > header { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr) auto; margin-bottom: 16px; }
+.console > header { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr) auto auto; margin-bottom: 16px; }
 .console-logo { display: block; grid-column: 1; max-width: 160px; width: 100%; }
 .status, .midi-status, .device-count, .admin-actions label { color: #fff; font-family: inherit; font-size: 1rem; font-weight: 800; }
 .status, .midi-status, .device-count { grid-column: 1 / -1; margin: 0; }
-.logout-button { align-self: center; grid-column: 2; min-height: 46px; }
+.logout-button { align-self: center; grid-column: 3; min-height: 46px; }
+.screen-controls { align-self: center; display: flex; gap: 8px; grid-column: 2; }
+.screen-controls button { background: #142b2d; border: 1px solid #aab9af; border-radius: 5px; color: #fff; min-height: 46px; padding: 0 18px; }
 .login-form { display: grid; gap: 8px; margin: 0 0 24px; max-width: 420px; }
 .login-form input { background: #fffdf5; border: 1px solid #8fa49c; border-radius: 4px; color: #142b2d; font: inherit; min-height: 46px; padding: 8px 10px; }
 .login-form button { background: #142b2d; border-radius: 5px; min-height: 50px; margin-top: 8px; }

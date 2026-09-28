@@ -10,6 +10,9 @@
     <main class="console">
       <header>
         <img class="console-logo" src="assets/Logo.png" alt="Regie" />
+        <div class="screen-controls" hidden>
+          <button id="showToggleButton" type="button">Fermer le show</button>
+        </div>
         <button id="logoutButton" class="logout-button" type="button" hidden>Se déconnecter</button>
         <p id="adminStatus" class="status">Connexion a Firebase...</p>
         <p id="midiStatus" class="midi-status" hidden aria-live="polite"></p>
@@ -51,7 +54,7 @@
     <dialog id="logoutDialog" class="confirm-dialog" aria-labelledby="logoutDialogTitle" aria-describedby="logoutDialogText">
       <form method="dialog">
         <h2 id="logoutDialogTitle">Se déconnecter ?</h2>
-        <p id="logoutDialogText">Le show sera arrêté sur tous les écrans connectés.</p>
+        <p id="logoutDialogText">Le show sera arrêté et tous les écrans seront déconnectés.</p>
         <div class="confirm-actions">
           <button class="confirm-cancel" value="cancel" autofocus>Non</button>
           <button class="confirm-ok" value="confirm">Oui, se déconnecter</button>

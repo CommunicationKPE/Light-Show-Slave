@@ -13,7 +13,9 @@
     },
     "participants": {
       ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true",
       "$participantId": {
+        ".read": "auth != null && auth.uid === $participantId",
         ".write": "auth != null && auth.uid === $participantId && (!newData.exists() || root.child('show/active').val() === true)"
       }
     }

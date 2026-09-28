@@ -13,6 +13,8 @@ const cuePanel = document.querySelector(".cue-panel");
 const adminActions = document.querySelector(".admin-actions");
 const deviceCount = document.querySelector("#deviceCount");
 const deviceCountRow = document.querySelector(".device-count");
+const screenControls = document.querySelector(".screen-controls");
+const showToggleButton = document.querySelector("#showToggleButton");
 const midiStatus = document.querySelector("#midiStatus");
 const midiCueButtons = new Map([
   [36, document.querySelector(".cue.black")],
@@ -34,6 +36,8 @@ const midiCueButtons = new Map([
 ]);
 
 let stopParticipantsWatch = null;
+let stopShowActiveWatch = null;
+let showActive = false;
 let stopShowPresence = null;
 let midiAccess = null;
 
@@ -54,6 +58,8 @@ async function stopShow() {
   const activeRef = ref(database, "show/active");
   await onDisconnect(activeRef).cancel();
   await set(activeRef, false);
+  // Also clears stale entries left by screens that went offline.
+  await set(ref(database, "participants"), null);
 }
 
 function handleMidiMessage({ data }) {
@@ -97,6 +103,14 @@ function watchParticipants() {
   stopParticipantsWatch?.();
   stopParticipantsWatch = onValue(ref(database, "participants"), (snapshot) => {
     deviceCount.textContent = Object.keys(snapshot.val() || {}).length;
+  });
+}
+
+function watchShowActive() {
+  stopShowActiveWatch?.();
+  stopShowActiveWatch = onValue(ref(database, "show/active"), (snapshot) => {
+    showActive = snapshot.val() === true;
+    showToggleButton.textContent = showActive ? "Fermer le show" : "Ouvrir le show";
   });
 }
 
@@ -156,15 +170,30 @@ logoutDialog.addEventListener("click", (event) => {
   if (event.target === logoutDialog) logoutDialog.close("cancel");
 });
 
+showToggleButton.addEventListener("click", async () => {
+  try {
+    if (showActive) {
+      await stopShow();
+      status.textContent = "Show fermé : les écrans ont été déconnectés.";
+    } else {
+      // Sent before opening so the first screens to join start on black.
+      await sendCue("#000000", "Black / Mettre en attente");
+      startShowPresence();
+      status.textContent = "Show ouvert : les écrans peuvent se connecter.";
+    }
+  } catch (error) {
+    console.error("Failed to toggle the show", error);
+    status.textContent = `Action impossible (${error.code || "erreur inconnue"}).`;
+  }
+});
+
 logoutDialog.addEventListener("close", async () => {
   if (logoutDialog.returnValue !== "confirm") return;
   // Must run before signOut, while the admin can still write.
-  if (stopShowPresence) {
-    try {
-      await stopShow();
-    } catch (error) {
-      console.error("Failed to close the show", error);
-    }
+  try {
+    await stopShow();
+  } catch (error) {
+    console.error("Failed to close the show", error);
   }
   try {
     await signOut(auth);
@@ -183,8 +212,11 @@ if (isConfigured && auth) {
       cuePanel.hidden = true;
       adminActions.hidden = true;
       deviceCountRow.hidden = true;
+      screenControls.hidden = true;
       stopParticipantsWatch?.();
       stopParticipantsWatch = null;
+      stopShowActiveWatch?.();
+      stopShowActiveWatch = null;
       stopShowPresence?.();
       stopShowPresence = null;
       deviceCount.textContent = "0";
@@ -199,10 +231,11 @@ if (isConfigured && auth) {
     cuePanel.hidden = !isAdmin;
     adminActions.hidden = !isAdmin;
     deviceCountRow.hidden = !isAdmin;
+    screenControls.hidden = !isAdmin;
     status.textContent = isAdmin ? "Prêt à envoyer un signal..." : "Ce compte n'a pas accès à la régie.";
     if (isAdmin) {
       watchParticipants();
-      startShowPresence();
+      watchShowActive();
       connectMidi();
     } else {
       stopParticipantsWatch?.();
