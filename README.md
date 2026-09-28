@@ -20,6 +20,8 @@ Application statique pour des ecrans de spectateurs synchronises avec Firebase R
 
 ## Contrat de donnees
 
+La regie ouvre et ferme le show via `show/active` ; les ecrans ne peuvent rejoindre que lorsqu'il vaut `true` et quittent le show automatiquement a sa fermeture. Chaque ecran connecte est enregistre sous `participants/{uid}`.
+
 La regie ecrit le signal courant sous `show/currentCue` : couleur, nom, message optionnel, transition et instant d'emission. Les spectateurs ecoutent cette valeur en temps reel.
 
 ## Avant le spectacle

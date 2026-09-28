@@ -118,7 +118,7 @@ function updateDuration() {
   durationValue.textContent = `${duration.value} ms`;
 }
 
-async function sendCue(color, label = "", message = "") {
+async function sendCue(color, label, message = "") {
   if (!isConfigured || !database || !auth?.currentUser) {
     status.textContent = "Ajoute la configuration Firebase dans firebase-config.js";
     return;
@@ -131,7 +131,7 @@ async function sendCue(color, label = "", message = "") {
     transition: Number(duration.value),
     startedAt: Date.now()
   });
-  status.textContent = `Signal envoyé : ${label || "attente"}`;
+  status.textContent = `Signal envoyé : ${label}`;
 }
 
 duration.addEventListener("input", updateDuration);

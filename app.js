@@ -11,19 +11,27 @@ const connectionStatus = document.querySelector("#connectionStatus");
 const connectedLabel = document.querySelector("#connectedLabel");
 const retryButton = document.querySelector("#retryButton");
 const showClosed = document.querySelector("#showClosed");
-const kickedNotice = document.querySelector("#kickedNotice");
+const endNotice = document.querySelector("#endNotice");
 const welcomeTitle = document.querySelector("#welcomeTitle");
 const welcomeIntro = document.querySelector("#welcomeIntro");
 const welcomeNotice = document.querySelector("#welcomeNotice");
 
 let session = null;
 
-async function leaveShow(reason, hideTitle = false) {
+function setEndScreen(isEnded) {
+  endNotice.hidden = !isEnded;
+  welcomeTitle.hidden = isEnded;
+  welcomeIntro.hidden = isEnded;
+  welcomeNotice.hidden = isEnded;
+  if (isEnded) showClosed.hidden = true;
+}
+
+async function leaveShow() {
   if (!session) return;
-  const { participantRef, stopCue, stopSelf } = session;
+  const { participantRef, stopCue, stopConnection } = session;
   session = null;
   stopCue();
-  stopSelf();
+  stopConnection();
   try {
     await onDisconnect(participantRef).cancel();
     await remove(participantRef);
@@ -36,12 +44,7 @@ async function leaveShow(reason, hideTitle = false) {
   showMessage.hidden = true;
   waiting.hidden = true;
   welcome.hidden = false;
-  kickedNotice.textContent = reason;
-  kickedNotice.hidden = !reason;
-  welcomeTitle.hidden = hideTitle;
-  welcomeIntro.hidden = hideTitle;
-  welcomeNotice.hidden = hideTitle;
-  if (hideTitle) showClosed.hidden = true;
+  setEndScreen(true);
 }
 
 function applyCue(cue) {
@@ -55,7 +58,6 @@ function applyCue(cue) {
 
 async function joinShow() {
   if (session) return;
-  kickedNotice.hidden = true;
   welcome.hidden = true;
   waiting.hidden = false;
   retryButton.hidden = true;
@@ -80,11 +82,19 @@ async function joinShow() {
     connectionStatus.textContent = "";
     connectedLabel.hidden = false;
     const stopCue = onValue(ref(database, "show/currentCue"), (snapshot) => applyCue(snapshot.val()));
-    // The régie kicks a screen by deleting its participant node.
-    const stopSelf = onValue(participantRef, (snapshot) => {
-      if (!snapshot.exists()) leaveShow("Tu as été déconnecté par la régie.");
+    const stopConnection = onValue(ref(database, ".info/connected"), async (snapshot) => {
+      const isConnected = snapshot.val() === true;
+      connectedLabel.textContent = isConnected ? "CONNECTÉ AU SHOW" : "RECONNEXION…";
+      if (!isConnected) return;
+      // The server removed this screen when the connection dropped: register it again.
+      try {
+        await onDisconnect(participantRef).remove();
+        await set(participantRef, { joinedAt: Date.now() });
+      } catch (error) {
+        console.error("Participant re-registration failed", error);
+      }
     });
-    session = { participantRef, stopCue, stopSelf };
+    session = { participantRef, stopCue, stopConnection };
   } catch (error) {
     console.error("Participant connection failed", error);
     connectionStatus.textContent = "Connexion impossible. Verifie le reseau puis reessaie.";
@@ -101,13 +111,8 @@ if (isConfigured && database) {
     const isActive = snapshot.val() === true;
     joinButton.hidden = !isActive;
     showClosed.hidden = isActive;
-    if (isActive && welcomeTitle.hidden) {
-      kickedNotice.hidden = true;
-      welcomeTitle.hidden = false;
-      welcomeIntro.hidden = false;
-      welcomeNotice.hidden = false;
-    }
-    if (!isActive) leaveShow("Le show est terminé. Merci ! Vous pouvez quitter cette page et refermer votre navigateur.", true);
+    if (isActive) setEndScreen(false);
+    else leaveShow();
   });
 } else {
   joinButton.hidden = false;
