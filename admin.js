@@ -1,5 +1,5 @@
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { onDisconnect, onValue, ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+import { goOffline, goOnline, onDisconnect, onValue, ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 import { auth, database, isConfigured } from "./firebase-client.js";
 
 const status = document.querySelector("#adminStatus");
@@ -219,6 +219,8 @@ if (isConfigured && auth) {
       stopShowActiveWatch = null;
       stopShowPresence?.();
       stopShowPresence = null;
+      // Frees the régie's slot among the database's simultaneous connections.
+      goOffline(database);
       deviceCount.textContent = "0";
       midiStatus.hidden = true;
       status.textContent = "Connectez-vous avec le compte de la regie.";
@@ -234,6 +236,7 @@ if (isConfigured && auth) {
     screenControls.hidden = !isAdmin;
     status.textContent = isAdmin ? "Prêt à envoyer un signal..." : "Ce compte n'a pas accès à la régie.";
     if (isAdmin) {
+      goOnline(database);
       watchParticipants();
       watchShowActive();
       connectMidi();

@@ -1,6 +1,9 @@
 import { signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { onDisconnect, onValue, ref, remove, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+import { goOffline, goOnline, onDisconnect, onValue, ref, remove, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 import { auth, database, isConfigured } from "./firebase-client.js";
+import { firebaseConfig } from "./firebase-config.js";
+
+const SHOW_STATUS_POLL_MS = 5000;
 
 const joinButton = document.querySelector("#joinButton");
 const welcome = document.querySelector("#welcome");
@@ -23,21 +26,45 @@ function setEndScreen(isEnded) {
   welcomeTitle.hidden = isEnded;
   welcomeIntro.hidden = isEnded;
   welcomeNotice.hidden = isEnded;
-  if (isEnded) showClosed.hidden = true;
+  if (isEnded) {
+    showClosed.hidden = true;
+    joinButton.hidden = true;
+  }
+}
+
+function updateWelcome(isActive) {
+  joinButton.hidden = !isActive;
+  showClosed.hidden = isActive || !endNotice.hidden;
+  if (isActive) setEndScreen(false);
+}
+
+// Short REST read: doesn't hold one of the database's limited simultaneous connections.
+async function pollShowStatus() {
+  if (!session) {
+    try {
+      const response = await fetch(`${firebaseConfig.databaseURL}/show/active.json`);
+      if (response.ok) updateWelcome((await response.json()) === true);
+    } catch (error) {
+      console.error("Show status check failed", error);
+    }
+  }
+  setTimeout(pollShowStatus, SHOW_STATUS_POLL_MS);
 }
 
 async function leaveShow() {
   if (!session) return;
-  const { participantRef, stopCue, stopConnection } = session;
+  const { participantRef, stopCue, stopConnection, stopActive } = session;
   session = null;
   stopCue();
   stopConnection();
+  stopActive();
   try {
     await onDisconnect(participantRef).cancel();
     await remove(participantRef);
   } catch (error) {
     console.error("Participant cleanup failed", error);
   }
+  goOffline(database);
   // Back to the CSS default (transparent) so the page background shows again.
   stage.style.removeProperty("--cue-color");
   showMessage.textContent = "";
@@ -74,6 +101,7 @@ async function joinShow() {
   }
 
   try {
+    goOnline(database);
     const credential = auth?.currentUser ? { user: auth.currentUser } : await signInAnonymously(auth);
     const participantId = credential.user.uid;
     const participantRef = ref(database, `participants/${participantId}`);
@@ -94,9 +122,13 @@ async function joinShow() {
         console.error("Participant re-registration failed", error);
       }
     });
-    session = { participantRef, stopCue, stopConnection };
+    session = { participantRef, stopCue, stopConnection, stopActive: () => {} };
+    session.stopActive = onValue(ref(database, "show/active"), (snapshot) => {
+      if (snapshot.val() !== true) leaveShow();
+    });
   } catch (error) {
     console.error("Participant connection failed", error);
+    goOffline(database);
     connectionStatus.textContent = "Connexion impossible. Verifie le reseau puis reessaie.";
     retryButton.disabled = false;
     retryButton.hidden = false;
@@ -107,13 +139,7 @@ joinButton.addEventListener("click", joinShow);
 retryButton.addEventListener("click", joinShow);
 
 if (isConfigured && database) {
-  onValue(ref(database, "show/active"), (snapshot) => {
-    const isActive = snapshot.val() === true;
-    joinButton.hidden = !isActive;
-    showClosed.hidden = isActive;
-    if (isActive) setEndScreen(false);
-    else leaveShow();
-  });
+  pollShowStatus();
 } else {
   joinButton.hidden = false;
 }
