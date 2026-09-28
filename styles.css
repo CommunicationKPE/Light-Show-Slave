@@ -94,6 +94,18 @@ button { border: 0; color: inherit; cursor: pointer; font: inherit; font-weight:
 .logout-button, .message-controls button { background: #ba1f33; border-radius: 5px; color: #fff; padding: 0 22px; }
 input[type="range"] { accent-color: #0d7874; width: 100%; }
 
+.confirm-dialog { background: #071619; border: 1px solid #aab9af; border-radius: 5px; box-shadow: 0 18px 50px rgba(0, 0, 0, .6); color: #fff; max-width: min(420px, calc(100vw - 32px)); padding: 24px; }
+.confirm-dialog[open] { animation: dialog-in 160ms ease-out; }
+.confirm-dialog::backdrop { backdrop-filter: blur(3px); background: rgba(7, 22, 25, .75); }
+.confirm-dialog h2 { font-size: 1.3rem; margin: 0 0 8px; }
+.confirm-dialog p { color: #c7d7d3; line-height: 1.45; margin: 0 0 20px; }
+.confirm-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.confirm-actions button { border-radius: 5px; color: #fff; min-height: 46px; padding: 0 22px; }
+.confirm-cancel { background: #142b2d; border: 1px solid #8fa49c; }
+.confirm-ok { background: #ba1f33; }
+
+@keyframes dialog-in { from { opacity: 0; transform: translateY(8px) scale(.97); } }
+
 @keyframes pulse { 50% { opacity: .3; transform: scale(1.8); } }
 
 @media (max-width: 639px) {

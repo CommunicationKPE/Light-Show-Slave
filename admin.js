@@ -4,6 +4,7 @@ import { auth, database, isConfigured } from "./firebase-client.js";
 
 const status = document.querySelector("#adminStatus");
 const logoutButton = document.querySelector("#logoutButton");
+const logoutDialog = document.querySelector("#logoutDialog");
 const duration = document.querySelector("#duration");
 const durationValue = document.querySelector("#durationValue");
 const loginForm = document.querySelector("#loginForm");
@@ -146,7 +147,17 @@ loginForm.addEventListener("submit", async (event) => {
   }
 });
 
-logoutButton.addEventListener("click", async () => {
+logoutButton.addEventListener("click", () => {
+  logoutDialog.returnValue = "";
+  logoutDialog.showModal();
+});
+
+logoutDialog.addEventListener("click", (event) => {
+  if (event.target === logoutDialog) logoutDialog.close("cancel");
+});
+
+logoutDialog.addEventListener("close", async () => {
+  if (logoutDialog.returnValue !== "confirm") return;
   // Must run before signOut, while the admin can still write.
   if (stopShowPresence) {
     try {

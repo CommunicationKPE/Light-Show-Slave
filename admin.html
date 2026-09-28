@@ -48,6 +48,16 @@
         <input id="duration" type="range" min="0" max="2000" step="50" value="350" />
       </div>
     </main>
+    <dialog id="logoutDialog" class="confirm-dialog" aria-labelledby="logoutDialogTitle" aria-describedby="logoutDialogText">
+      <form method="dialog">
+        <h2 id="logoutDialogTitle">Se déconnecter ?</h2>
+        <p id="logoutDialogText">Le show sera arrêté sur tous les écrans connectés.</p>
+        <div class="confirm-actions">
+          <button class="confirm-cancel" value="cancel" autofocus>Non</button>
+          <button class="confirm-ok" value="confirm">Oui, se déconnecter</button>
+        </div>
+      </form>
+    </dialog>
     <script type="module" src="admin.js"></script>
   </body>
 </html>
