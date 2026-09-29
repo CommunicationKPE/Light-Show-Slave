@@ -117,7 +117,7 @@ async function joinShow() {
     const participantId = credential.user.uid;
     const participantRef = ref(database, `participants/${participantId}`);
     await onDisconnect(participantRef).remove();
-    await set(participantRef, { joinedAt: Date.now() });
+    await set(participantRef, true);
     connectionStatus.textContent = "";
     connectedLabel.hidden = false;
     const stopCue = onValue(ref(database, "show/currentCue"), (snapshot) => applyCue(snapshot.val()));
@@ -128,7 +128,7 @@ async function joinShow() {
       // The server removed this screen when the connection dropped: register it again.
       try {
         await onDisconnect(participantRef).remove();
-        await set(participantRef, { joinedAt: Date.now() });
+        await set(participantRef, true);
       } catch (error) {
         console.error("Participant re-registration failed", error);
       }

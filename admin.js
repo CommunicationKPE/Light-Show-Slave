@@ -126,10 +126,8 @@ async function sendCue(color, label, message = "") {
 
   await set(ref(database, "show/currentCue"), {
     color,
-    label,
     message,
-    transition: Number(duration.value),
-    startedAt: Date.now()
+    transition: Number(duration.value)
   });
   status.textContent = `Signal envoyé : ${label}`;
 }
